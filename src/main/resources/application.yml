@@ -1,0 +1,7 @@
+logging:
+  level:
+    root: DEBUG
+
+datasource:
+  mongo:
+    uri: "mongodb://appuser:pass1234@localhost:27017/SAMPLE_DB?authSource=admin"

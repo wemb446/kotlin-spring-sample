@@ -1,0 +1,69 @@
+version: '3'
+services:
+#  app:
+#    build: .
+#    container_name: kotlin
+#    restart: always
+#    working_dir: /app
+#    volumes:
+#      - .:/app
+#    ports:
+#      - "8080:8080"
+#    command: ./gradlew bootRun
+#    depends_on:
+#      - mongodb
+
+  mongo:
+    image: mongo:4
+    container_name: mongo-server
+    restart: always
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo:/data/db
+      - configdb:/data/configdb
+      - ./mongo/init:/docker-entrypoint-initdb.d
+      - ./mongo/init/02_create_user.js:/docker-entrypoint-initdb.d/init.js:ro
+    environment:
+      MONGODB_USER: appuser
+      MONGODB_DATABASE: SAMPLE_DB
+      MONGODB_PASS: appuser
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass1234
+      MONGO_INITDB_DATABASE: SAMPLE_DB
+    command: [mongod, --auth]
+    networks:
+      - mongo-compose-network
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - '8081:8081'
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo-server
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true'
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: pass1234
+    depends_on:
+      - mongo
+    networks:
+      - mongo-compose-network
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redisDB:/data
+
+volumes:
+  mongo:
+  configdb:
+  redisDB:
+
+networks:
+  mongo-compose-network:
+    driver: bridge
